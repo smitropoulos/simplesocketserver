@@ -14,8 +14,8 @@ class Socket_Server {
 private:
     unsigned int portNumber{8080};
     bool init{};
-    int listeningSocket;
-    Socket_Server(unsigned int port): portNumber(port){};
+    int listeningSocket{};
+    explicit Socket_Server(unsigned int port): portNumber(port){};
     Socket_Server() = default;
 
     int initialiseSocket(unsigned int portNumber);
@@ -34,7 +34,7 @@ public:
         if (init){
             handleRequests();
         }
-        std::cerr << "Server not initialised. Please initiliase it first before running\n";
+        std::cerr << "Server not initialised. Please initialize it first before running\n";
         return -1;
     }
 };

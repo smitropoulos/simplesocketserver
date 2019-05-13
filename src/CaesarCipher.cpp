@@ -2,7 +2,7 @@
 // Created by Stefanos Mitropoulos on 2019-05-11.
 //
 
-#include "CaesarCipher.h"
+#include "../include/CaesarCipher.h"
 
 std::string CaesarCipher::operate(std::string &input) {
 

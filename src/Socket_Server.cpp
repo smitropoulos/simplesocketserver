@@ -5,8 +5,10 @@
 #include <netinet/in.h>
 #include <iostream>
 #include <zconf.h>
+#include <cstring>
+#include <future>
 #include "Socket_Server.h"
-
+#include "CaesarCipher.h"
 
 void *connection_handler(void *socket_desc)
 {
@@ -45,11 +47,53 @@ void *connection_handler(void *socket_desc)
         perror("recv failed");
     }
 
-
-    sleep(10);
-
     return 0;
 }
+
+
+void connection_handler2(void *socket_desc)
+{
+    //Get the socket descriptor
+    int sock = *(int*)socket_desc;
+    int read_size;
+    const char *message;
+    char client_message[200];
+
+    //Send some messages to the client
+    message = "Greetings! I am your connection handler\n";
+    write(sock , message , strlen(message));
+
+    message = "Now type something and i shall apply the caesar cipher ot it \n";
+    write(sock , message , strlen(message));
+
+    //Receive a message from client
+    while( (read_size = recv(sock , client_message , 200 , 0)) > 0 )
+    {
+        //end of string marker
+        client_message[read_size] = '\0';
+
+        std::string temp(client_message);
+        temp = CaesarCipher::getInstance().operate(temp);
+
+        //Send the message back to client
+        write(sock , temp.c_str(), strlen(temp.c_str()));
+
+        //clear the message buffer
+        memset(client_message, 0, 200);
+    }
+
+    if(read_size == 0)
+    {
+        puts("Client disconnected");
+        fflush(stdout);
+    }
+    else if(read_size == -1)
+    {
+        perror("recv failed");
+    }
+}
+
+
 
 int Socket_Server::initialiseSocket(unsigned int portNumber) {
 
@@ -108,21 +152,14 @@ int Socket_Server::handleRequests() {
     std::cout << ("Waiting for incoming connections...\n");
     size_t c = sizeof(struct sockaddr_in);
 
-    pthread_t thread_id;
 
     while( (client_sock = accept(listeningSocket, (struct sockaddr *)&client, (socklen_t*)&c)) )
     {
         puts("Connection accepted");
 
-        if( pthread_create( &thread_id , NULL ,  connection_handler,  (void*) &client_sock) < 0)
-        {
-            perror("could not create thread");
-            return 1;
-        }
+        std::thread thread(connection_handler2, &client_sock);
+        thread.detach();
 
-        //Now join the thread , so that we dont terminate before the thread
-        //pthread_join( thread_id , NULL);
-        puts("Handler assigned");
     }
 
     if (client_sock < 0)
