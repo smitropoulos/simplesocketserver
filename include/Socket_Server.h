@@ -5,8 +5,12 @@
 #ifndef TCP_SERVER_THREADED_SOCKET_SERVER_H
 #define TCP_SERVER_THREADED_SOCKET_SERVER_H
 #include <string>
-#include "CaesarCipher.h"
 #include <iostream>
+#include <netinet/in.h>
+#include <iostream>
+#include <cstring>
+#include <thread>
+#include "CaesarCipher.h"
 
 void *connection_handler(void *socket_desc);
 
@@ -18,7 +22,7 @@ private:
     explicit Socket_Server(unsigned int port): portNumber(port){};
     Socket_Server() = default;
 
-    int initialiseSocket(unsigned int portNumber);
+    int initialiseSocket(unsigned int PortNumber);
     int handleRequests();
 public:
     static Socket_Server& getInstance(){

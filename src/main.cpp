@@ -6,8 +6,7 @@
 
 #include "Socket_Server.h"
 
-int main(int argc , char *argv[]){
-
+int main() {
     Socket_Server::getInstance().initialiseServer(8080);
     Socket_Server::getInstance().operate();
 }

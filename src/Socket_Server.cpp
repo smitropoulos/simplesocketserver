@@ -2,100 +2,10 @@
 // Created by smitropoulos on 5/11/19.
 //
 
-#include <netinet/in.h>
-#include <iostream>
-#include <zconf.h>
-#include <cstring>
-#include <future>
 #include "Socket_Server.h"
-#include "CaesarCipher.h"
+#include "ConnectionHandler.h"
 
-void *connection_handler(void *socket_desc)
-{
-    //Get the socket descriptor
-    int sock = *(int*)socket_desc;
-    int read_size;
-    char *message , client_message[2000];
-
-    //Send some messages to the client
-    message = "Greetings! I am your connection handler\n";
-    write(sock , message , strlen(message));
-
-    message = "Now type something and i shall repeat what you type \n";
-    write(sock , message , strlen(message));
-
-    //Receive a message from client
-    while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
-    {
-        //end of string marker
-        client_message[read_size] = '\0';
-
-        //Send the message back to client
-        write(sock , client_message , strlen(client_message));
-
-        //clear the message buffer
-        memset(client_message, 0, 2000);
-    }
-
-    if(read_size == 0)
-    {
-        puts("Client disconnected");
-        fflush(stdout);
-    }
-    else if(read_size == -1)
-    {
-        perror("recv failed");
-    }
-
-    return 0;
-}
-
-
-void connection_handler2(void *socket_desc)
-{
-    //Get the socket descriptor
-    int sock = *(int*)socket_desc;
-    int read_size;
-    const char *message;
-    char client_message[200];
-
-    //Send some messages to the client
-    message = "Greetings! I am your connection handler\n";
-    write(sock , message , strlen(message));
-
-    message = "Now type something and i shall apply the caesar cipher ot it \n";
-    write(sock , message , strlen(message));
-
-    //Receive a message from client
-    while( (read_size = recv(sock , client_message , 200 , 0)) > 0 )
-    {
-        //end of string marker
-        client_message[read_size] = '\0';
-
-        std::string temp(client_message);
-        temp = CaesarCipher::getInstance().operate(temp);
-
-        //Send the message back to client
-        write(sock , temp.c_str(), strlen(temp.c_str()));
-
-        //clear the message buffer
-        memset(client_message, 0, 200);
-    }
-
-    if(read_size == 0)
-    {
-        puts("Client disconnected");
-        fflush(stdout);
-    }
-    else if(read_size == -1)
-    {
-        perror("recv failed");
-    }
-}
-
-
-
-int Socket_Server::initialiseSocket(unsigned int portNumber) {
+int Socket_Server::initialiseSocket(unsigned int PortNumber) {
 
     unsigned int backlog = 10;
 
@@ -125,7 +35,7 @@ int Socket_Server::initialiseSocket(unsigned int portNumber) {
     //Prepare the socket for incoming connections
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(static_cast<int>(portNumber));
+    server.sin_port = htons(PortNumber); // NOLINT(hicpp-signed-bitwise)
 
     //Bind
     if( bind(listeningSocket,(const struct sockaddr *)&server , sizeof(sockaddr_in)) < 0)
@@ -152,12 +62,16 @@ int Socket_Server::handleRequests() {
     std::cout << ("Waiting for incoming connections...\n");
     size_t c = sizeof(struct sockaddr_in);
 
+    ConnectionHandler requestHandler("caesar"); //Caesar Cipher constructor
 
     while( (client_sock = accept(listeningSocket, (struct sockaddr *)&client, (socklen_t*)&c)) )
     {
         puts("Connection accepted");
 
-        std::thread thread(connection_handler2, &client_sock);
+        //Handle Requests Here
+        //Use std::ref to create an rvalue ref to the object which will execute the Handle function.
+        // Else, the object will be copied, the desctructor will be called and a non initialized pointer will be destroyed (boom)
+        std::thread thread(&ConnectionHandler::Handle, std::ref(requestHandler), client_sock);
         thread.detach();
 
     }

@@ -5,17 +5,11 @@
 #ifndef TCP_SERVER_THREADED_CAESARCIPHER_H
 #define TCP_SERVER_THREADED_CAESARCIPHER_H
 
-#include <string>
+#include "Cipher.h"
 
-class CaesarCipher {
-private:
-    CaesarCipher() = default;
+class CaesarCipher : public Cipher {
 public:
-    static CaesarCipher& getInstance(){
-        static CaesarCipher xInstance;
-        return xInstance;
-    }
-    std::string operate(std::string& input);
+    std::string operate(std::string &input) override;
 
 };
 
