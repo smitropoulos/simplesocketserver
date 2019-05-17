@@ -1,17 +1,15 @@
+#include <memory>
+
 //
 // Created by Stefanos Mitropoulos on 2019-05-15.
 //
 
 #include "ConnectionHandler.h"
-#include <unistd.h>
-#include <sys/socket.h>
 
 ConnectionHandler::ConnectionHandler(const std::string &cipherName) {
     if (cipherName == "caesar") {
-        cipher = new CaesarCipher;
+        cipher = std::make_unique<CaesarCipher>();
     }
-
-
 }
 
 void *ConnectionHandler::Handle(int socket) const {

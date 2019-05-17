@@ -7,23 +7,28 @@
 
 
 #include <string>
+#include <unistd.h>
+#include <sys/socket.h>
+
 #include "CaesarCipher.h"
 
 class ConnectionHandler {
 private:
-    Cipher *cipher{};
+    std::unique_ptr<Cipher> cipher;
+    //Cipher *cipher{};
 public:
-    ConnectionHandler() = delete;
-
     explicit ConnectionHandler(const std::string &cipherName);
 
-    ~ConnectionHandler() {
-        if (cipher != nullptr) {
-            delete (cipher);
+    explicit ConnectionHandler() = default;
+    void *Handle(int socket) const;
+
+    ConnectionHandler &operator=(ConnectionHandler &&other) noexcept {
+        if (this != &other) {
+            this->cipher = std::move(other.cipher);
         }
+        return *this;
     }
 
-    void *Handle(int socket) const;
 };
 
 

@@ -1,12 +1,17 @@
-/*
-    C socket server example, handles multiple clients using threads
-    Compile
-    gcc server.c -lpthread -o server
-*/
+#include "SignalHandling.h"
+#include "SocketServer.h"
+#include "ConnectionHandler.h"
 
-#include "Socket_Server.h"
+typedef sServer::SocketServer srvr;
 
 int main() {
-    Socket_Server::getInstance().initialiseServer(8080);
-    Socket_Server::getInstance().operate();
+
+    // Install a signal handler
+    std::signal(SIGABRT, signalHandling::signal_handler);
+
+    ConnectionHandler connHandler("caesar");
+
+    srvr::getInstance().initialise(8080);
+    srvr::getInstance().operate(connHandler);
+
 }

@@ -2,10 +2,9 @@
 // Created by smitropoulos on 5/11/19.
 //
 
-#include "Socket_Server.h"
-#include "ConnectionHandler.h"
+#include "SocketServer.h"
 
-int Socket_Server::initialiseSocket(unsigned int PortNumber) {
+int sServer::SocketServer::initialiseSocket(unsigned int PortNumber) {
 
     unsigned int backlog = 10;
 
@@ -37,7 +36,6 @@ int Socket_Server::initialiseSocket(unsigned int PortNumber) {
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(PortNumber); // NOLINT(hicpp-signed-bitwise)
 
-    //Bind
     if( bind(listeningSocket,(const struct sockaddr *)&server , sizeof(sockaddr_in)) < 0)
     {
         std::cerr << ("bind failed. Error\n");
@@ -46,7 +44,6 @@ int Socket_Server::initialiseSocket(unsigned int PortNumber) {
 
     std::cout << ("Bind succeeded\n");
 
-    //Listen on socket
     if (!listen(listeningSocket , static_cast<int>(backlog)) ){
         return listeningSocket;
     }
@@ -54,15 +51,16 @@ int Socket_Server::initialiseSocket(unsigned int PortNumber) {
     return -1;
 }
 
-int Socket_Server::handleRequests() {
+int sServer::SocketServer::handleRequests(ConnectionHandler &connectionHandler) {
 
     int client_sock;
     struct sockaddr client{};
-    //Accept and incoming connection
+
     std::cout << ("Waiting for incoming connections...\n");
     size_t c = sizeof(struct sockaddr_in);
 
-    ConnectionHandler requestHandler("caesar"); //Caesar Cipher constructor
+    ConnectionHandler requestHandler;
+    requestHandler = std::move(connectionHandler);
 
     while( (client_sock = accept(listeningSocket, (struct sockaddr *)&client, (socklen_t*)&c)) )
     {
@@ -84,5 +82,3 @@ int Socket_Server::handleRequests() {
 
     return 0;
 }
-
-
