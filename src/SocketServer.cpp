@@ -27,9 +27,10 @@ int sServer::SocketServer::initialiseSocket(unsigned int PortNumber) {
     listeningSocket = socket(AF_INET , SOCK_STREAM , 0);
     if (listeningSocket == -1)
     {
-        std::cerr << ("Could not create socket\n");
+        spdlog::critical("Could not create socket");
     }
-    std::cout << ("Socket created\n");
+
+    spdlog::debug("Socket created.");
 
     //Prepare the socket for incoming connections
     server.sin_family = AF_INET;
@@ -38,11 +39,11 @@ int sServer::SocketServer::initialiseSocket(unsigned int PortNumber) {
 
     if( bind(listeningSocket,(const struct sockaddr *)&server , sizeof(sockaddr_in)) < 0)
     {
-        std::cerr << ("bind failed. Error\n");
+        spdlog::critical("bind failed. Error");
         exit (-1);
     }
 
-    std::cout << ("Bind succeeded\n");
+    spdlog::debug("Bind succeeded\n");
 
     if (!listen(listeningSocket , static_cast<int>(backlog)) ){
         return listeningSocket;
@@ -56,7 +57,7 @@ int sServer::SocketServer::handleRequests(ConnectionHandler &connectionHandler) 
     int client_sock;
     struct sockaddr client{};
 
-    std::cout << ("Waiting for incoming connections...\n");
+    spdlog::info("Waiting for incoming connections...");
     size_t c = sizeof(struct sockaddr_in);
 
     ConnectionHandler requestHandler;
@@ -64,7 +65,7 @@ int sServer::SocketServer::handleRequests(ConnectionHandler &connectionHandler) 
 
     while( (client_sock = accept(listeningSocket, (struct sockaddr *)&client, (socklen_t*)&c)) )
     {
-        puts("Connection accepted");
+        spdlog::info("Connection accepted");
 
         //Handle Requests Here
         //Use std::ref to create an rvalue ref to the object which will execute the Handle function.
@@ -76,7 +77,7 @@ int sServer::SocketServer::handleRequests(ConnectionHandler &connectionHandler) 
 
     if (client_sock < 0)
     {
-        perror("accept failed");
+        spdlog::critical("accept failed");
         return 1;
     }
 

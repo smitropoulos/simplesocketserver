@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include "LoggingUtility.h"
 #include "CaesarCipher.h"
 
 class ConnectionHandler {

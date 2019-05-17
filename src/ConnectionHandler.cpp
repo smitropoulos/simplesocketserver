@@ -43,10 +43,10 @@ void *ConnectionHandler::Handle(int socket) const {
     }
 
     if (read_size == 0) {
-        puts("Client disconnected");
+        spdlog::debug("Client disconnected");
         fflush(stdout);
     } else if (read_size == -1) {
-        perror("recv failed");
+        spdlog::error("recv failed");
     }
 
     return nullptr;

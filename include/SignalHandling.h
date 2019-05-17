@@ -12,13 +12,11 @@
 namespace signalHandling {
     typedef sServer::SocketServer srvr;
 
-    void signal_handler(int signal) {
-        std::cout << "Signal " << signal << " caught. Closing socket and exiting" << std::endl;
-        if (srvr::getInstance().isInit()) {
-            close(8080);
-        }
-        exit(signal);
-    }
+    void registerSignals();
+
+    void sigabort_signal_handler(int signal);
+
+    void sigusr1_signal_handler(int signal);
 
 }
 #endif //TCP_SERVER_THREADED_SIGNALHANDLING_H

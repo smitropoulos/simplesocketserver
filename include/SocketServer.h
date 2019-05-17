@@ -10,6 +10,8 @@
 #include <iostream>
 #include <cstring>
 #include <thread>
+
+#include "LoggingUtility.h"
 #include "CaesarCipher.h"
 #include "ConnectionHandler.h"
 
@@ -48,7 +50,7 @@ public:
         if (init){
             handleRequests(connectionHandler);
         }
-        std::cerr << "Server not initialised. Please initialize it first before running\n";
+            spdlog::error("Server not initialised. Please initialize it first before running");
         return -1;
     }
 };
