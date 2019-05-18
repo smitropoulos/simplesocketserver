@@ -9,7 +9,6 @@
 #include <string>
 
 #include "LoggingUtility.h"
-
 namespace ArgHandler {
 
     void handleArg(int argc, char *argv[]);

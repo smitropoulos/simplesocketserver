@@ -21,6 +21,7 @@ public:
     explicit ConnectionHandler(const std::string &cipherName);
 
     explicit ConnectionHandler() = default;
+
     void *Handle(int socket) const;
 
     ConnectionHandler &operator=(ConnectionHandler &&other) noexcept {

@@ -20,6 +20,6 @@ void signalHandling::sigabort_signal_handler(int signal) {
 }
 
 void signalHandling::sigusr1_signal_handler(int signal) {
-    spdlog::debug("Signal {} caught. Closing socket and exiting", signal);
-    //ADD FUNCTIONALITY
+    spdlog::debug("Signal {} caught. Denying connections.", signal);
+    sServer::SocketServer::getInstance().setTerminateServer(true);
 }

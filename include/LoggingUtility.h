@@ -6,6 +6,7 @@
 #define TCP_SERVER_THREADED_LOGGINGUTILITY_H
 
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 class LoggingUtility {
 private:
@@ -17,7 +18,7 @@ public:
         return xInstance;
     }
 
-    void initialise() const;
+    void initialise(int arg) const;
 };
 
 

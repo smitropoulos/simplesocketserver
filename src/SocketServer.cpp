@@ -2,6 +2,7 @@
 // Created by smitropoulos on 5/11/19.
 //
 
+#include <poll.h>
 #include "SocketServer.h"
 
 int sServer::SocketServer::initialiseSocket(unsigned int PortNumber) {
@@ -24,9 +25,8 @@ int sServer::SocketServer::initialiseSocket(unsigned int PortNumber) {
     struct sockaddr_in server{};
 
     //Create socket
-    listeningSocket = socket(AF_INET , SOCK_STREAM , 0);
-    if (listeningSocket == -1)
-    {
+    listeningSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (listeningSocket == -1) {
         spdlog::critical("Could not create socket");
     }
 
@@ -37,49 +37,54 @@ int sServer::SocketServer::initialiseSocket(unsigned int PortNumber) {
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(PortNumber); // NOLINT(hicpp-signed-bitwise)
 
-    if( bind(listeningSocket,(const struct sockaddr *)&server , sizeof(sockaddr_in)) < 0)
-    {
+    if (bind(listeningSocket, (const struct sockaddr *) &server, sizeof(sockaddr_in)) < 0) {
         spdlog::critical("bind failed. Error");
-        exit (-1);
+        exit(-1);
     }
 
     spdlog::debug("Bind succeeded\n");
 
-    if (!listen(listeningSocket , static_cast<int>(backlog)) ){
+    if (!listen(listeningSocket, static_cast<int>(backlog))) {
         return listeningSocket;
     }
 
     return -1;
 }
 
+void sServer::SocketServer::setTerminateServer(bool terminateServer) {
+    SocketServer::TerminateServer = terminateServer;
+}
+
 int sServer::SocketServer::handleRequests(ConnectionHandler &connectionHandler) {
 
-    int client_sock;
-    struct sockaddr client{};
+    spdlog::info("Ready to handle requests");
 
-    spdlog::info("Waiting for incoming connections...");
+    struct pollfd fds[1];
+    fds[0].fd = listeningSocket;
+    fds[0].events = POLLIN | POLLPRI;
+
+    struct sockaddr client{};
+    int client_sock;
     size_t c = sizeof(struct sockaddr_in);
 
     ConnectionHandler requestHandler;
     requestHandler = std::move(connectionHandler);
 
-    while( (client_sock = accept(listeningSocket, (struct sockaddr *)&client, (socklen_t*)&c)) )
-    {
-        spdlog::info("Connection accepted");
+    do {
+        spdlog::info("Waiting for incoming connections...");
+        if (poll(fds, 1, 3000)) {
+            (client_sock = accept(listeningSocket, &client, (socklen_t *) &c));
+            spdlog::info("Connection accepted");
 
-        //Handle Requests Here
-        //Use std::ref to create an rvalue ref to the object which will execute the Handle function.
-        // Else, the object will be copied, the desctructor will be called and a non initialized pointer will be destroyed (boom)
-        std::thread thread(&ConnectionHandler::Handle, std::ref(requestHandler), client_sock);
-        thread.detach();
+            //Handle Requests Here
+            //Use std::ref to create an rvalue ref to the object which will execute the Handle function.
+            // Else, the object will be copied, the desctructor will be called and a non initialized pointer will be destroyed (boom)
+            std::thread thread(&ConnectionHandler::Handle, std::ref(requestHandler), client_sock);
+            thread.detach();
+        }
 
-    }
-
-    if (client_sock < 0)
-    {
-        spdlog::critical("accept failed");
-        return 1;
-    }
+    } while (!TerminateServer);
 
     return 0;
 }
+
