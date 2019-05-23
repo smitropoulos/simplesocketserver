@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     ArgHandler::handleArg(argc, argv);
     // Install signal handlers
     signalHandling::registerSignals();
-    srvr::getInstance().initialise(8080);
+  srvr::getInstance ().initialise (8081);
 
     ConnectionHandler connHandler("caesar");
     srvr::getInstance().operate(connHandler);

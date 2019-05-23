@@ -21,10 +21,7 @@ void *ConnectionHandler::Handle(int socket) const {
     char client_message[200];
 
     //Send some messages to the client
-    message = "Greetings! I am your connection handler\n";
-    write(sock, message, strlen(message));
-
-    message = "Now type something and i shall apply the caesar cipher ot it \n";
+  message = "Greetings! I am your connection handler! Now type something and i shall apply the caesar cipher to it\n";
     write(sock, message, strlen(message));
 
     //Receive a message from client
@@ -46,7 +43,7 @@ void *ConnectionHandler::Handle(int socket) const {
         spdlog::debug("Client disconnected");
         fflush(stdout);
     } else if (read_size == -1) {
-        spdlog::error("recv failed");
+        spdlog::error ("recv failed: {}", errno);
     }
 
     return nullptr;
