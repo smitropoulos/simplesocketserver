@@ -6,10 +6,10 @@
 #include <arpa/inet.h>
 #include "SocketServer.h"
 
-int sServer::SocketServer::initialiseSocket (unsigned int PortNumber)
+int sServer::SocketServer::initialiseSocket(unsigned int PortNumber)
 {
 
-  unsigned int backlog = 10;
+    unsigned int backlog = 10;
 
 /*
     struct sockaddr_in {
@@ -24,92 +24,84 @@ int sServer::SocketServer::initialiseSocket (unsigned int PortNumber)
     };
 */
 
-  struct sockaddr_in server{};
+    struct sockaddr_in server{};
 
-  //Create socket
-  listeningSocket = socket (AF_INET, SOCK_STREAM, 0);
-  if (listeningSocket == -1)
-    {
-      spdlog::critical ("Could not create socket");
+    //Create socket
+    listeningSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (listeningSocket==-1) {
+        spdlog::critical("Could not create socket");
     }
 
-  spdlog::debug ("Socket created.");
+    spdlog::debug("Socket created.");
 
-  //Prepare the socket for incoming connections
-  server.sin_family = AF_INET;
-  server.sin_addr.s_addr = INADDR_ANY;
-  server.sin_port = htons(PortNumber); // NOLINT(hicpp-signed-bitwise)
+    //Prepare the socket for incoming connections
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_port = htons(PortNumber); // NOLINT(hicpp-signed-bitwise)
 
-  {
-    int n = 1;
-    setsockopt (listeningSocket, SOL_SOCKET, SO_REUSEADDR, &n, sizeof n);
-  }
-
-  if (bind (listeningSocket, (const struct sockaddr *) &server, sizeof (sockaddr_in)) < 0)
     {
-      spdlog::critical ("bind failed. Error");
-      close (listeningSocket);
-      exit (-1);
+        int n = 1;
+        setsockopt(listeningSocket, SOL_SOCKET, SO_REUSEADDR, &n, sizeof n);
     }
 
-  spdlog::debug ("Bind succeeded\n");
-
-  if (!listen (listeningSocket, static_cast<int>(backlog)))
-    {
-      return listeningSocket;
-    }
-  else
-    {
-      close (listeningSocket);
+    if (bind(listeningSocket, (const struct sockaddr*) &server, sizeof(sockaddr_in))<0) {
+        spdlog::critical("bind failed. Error");
+        close(listeningSocket);
+        exit(-1);
     }
 
-  return -1;
+    spdlog::debug("Bind succeeded\n");
+
+    if (!listen(listeningSocket, static_cast<int>(backlog))) {
+        return listeningSocket;
+    }
+    else {
+        close(listeningSocket);
+    }
+
+    return -1;
 }
 
-void sServer::SocketServer::setTerminateServer (bool terminateServer)
+void sServer::SocketServer::setTerminateServer(bool terminateServer)
 {
-  SocketServer::TerminateServer = terminateServer;
+    SocketServer::TerminateServer = terminateServer;
 }
 
-int sServer::SocketServer::handleRequests (ConnectionHandler& connectionHandler)
+int sServer::SocketServer::handleRequests(ConnectionHandler& connectionHandler)
 {
 
-  spdlog::info ("Ready to handle requests");
+    spdlog::info("Ready to handle requests");
 
-  struct pollfd fds[1];
-  fds[0].fd = listeningSocket;
-  fds[0].events = POLLIN | POLLPRI;
+    struct pollfd fds[1];
+    fds[0].fd = listeningSocket;
+    fds[0].events = POLLIN | POLLPRI;
 
-  struct sockaddr client{};
-  int client_sock;
-  size_t c = sizeof (struct sockaddr_in);
+    struct sockaddr client{};
+    int client_sock;
+    size_t c = sizeof(struct sockaddr_in);
 
-  ConnectionHandler requestHandler;
-  requestHandler = std::move (connectionHandler);
+    ConnectionHandler requestHandler;
+    requestHandler = std::move(connectionHandler);
 
-  do
-    {
-//        spdlog::debug("Waiting for incoming connections...");
-      if (poll (fds, 1, 3000))
-        {
-          (client_sock = accept (listeningSocket, &client, (socklen_t *) &c));
-          spdlog::info ("Connection accepted");
+    do {
+        spdlog::debug("Waiting for incoming connections...");
+        if (poll(fds, 1, 3000)) {
+            (client_sock = accept(listeningSocket, &client, (socklen_t*) &c));
 
-          struct sockaddr_in sin_remote{};
-          char buffer[INET_ADDRSTRLEN];
-          // Show accepted connection.
-          inet_ntop (AF_INET, &sin_remote.sin_addr, buffer, sizeof buffer);
-          fprintf (stdout, "Connection from %s:%hu\n", buffer, ntohs(sin_remote.sin_port));
+            // Show accepted connection.
+            char incomingConnection[IS_ADDR_STR_LEN];
+            inetAddressStr(&client, (socklen_t) c, incomingConnection, IS_ADDR_STR_LEN);
+            spdlog::info("Connection accepted from {}", incomingConnection);
 
-          //Handle Requests Here
-          //Use std::ref to create an rvalue ref to the object which will execute the Handle function.
-          // Else, the object will be copied, the desctructor will be called and a non initialized pointer will be destroyed (boom)
-          std::thread thread (&ConnectionHandler::Handle, std::ref (requestHandler), client_sock);
-          thread.detach ();
+            //Handle Requests Here
+            //Use std::ref to create an rvalue ref to the object which will execute the Handle function.
+            // Else, the object will be copied, the desctructor will be called and a non initialized pointer will be destroyed (boom)
+            std::thread thread(&ConnectionHandler::Handle, std::ref(requestHandler), client_sock);
+            thread.detach();
         }
     }
-  while (!TerminateServer);
+    while (!TerminateServer);
 
-  return 0;
+    return 0;
 }
 

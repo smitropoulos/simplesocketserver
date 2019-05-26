@@ -11,6 +11,7 @@
 #include <iostream>
 #include <cstring>
 #include <thread>
+#include <inet_sockets.h>
 
 #include "LoggingUtility.h"
 #include "CaesarCipher.h"
