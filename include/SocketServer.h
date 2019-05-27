@@ -15,7 +15,7 @@
 
 #include "LoggingUtility.h"
 #include "CaesarCipher.h"
-#include "ConnectionHandler.h"
+#include "RequestHandler.h"
 
 namespace sServer {
 
@@ -36,7 +36,7 @@ namespace sServer {
 
         int initialiseSocket(unsigned int PortNumber);
 
-        int handleRequests(ConnectionHandler &connectionHandler);
+      int handleRequests (RequestHandler& connectionHandler);
 
     public:
         static SocketServer &getInstance() {
@@ -50,11 +50,13 @@ namespace sServer {
             init = true;
         }
 
-        inline bool isInit() {
+      bool isInit ()
+      {
             return init;
         }
 
-        int operate(ConnectionHandler &connectionHandler) {
+      int operate (RequestHandler& connectionHandler)
+      {
             if (init) {
                 handleRequests(connectionHandler);
             }

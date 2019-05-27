@@ -67,7 +67,7 @@ void sServer::SocketServer::setTerminateServer(bool terminateServer)
     SocketServer::TerminateServer = terminateServer;
 }
 
-int sServer::SocketServer::handleRequests(ConnectionHandler& connectionHandler)
+int sServer::SocketServer::handleRequests (RequestHandler& connectionHandler)
 {
 
     spdlog::info("Ready to handle requests");
@@ -80,7 +80,7 @@ int sServer::SocketServer::handleRequests(ConnectionHandler& connectionHandler)
     int client_sock;
     size_t c = sizeof(struct sockaddr_in);
 
-    ConnectionHandler requestHandler;
+  RequestHandler requestHandler;
     requestHandler = std::move(connectionHandler);
 
     do {
@@ -96,7 +96,7 @@ int sServer::SocketServer::handleRequests(ConnectionHandler& connectionHandler)
             //Handle Requests Here
             //Use std::ref to create an rvalue ref to the object which will execute the Handle function.
             // Else, the object will be copied, the desctructor will be called and a non initialized pointer will be destroyed (boom)
-            std::thread thread(&ConnectionHandler::Handle, std::ref(requestHandler), client_sock);
+            std::thread thread (&RequestHandler::Handle, std::ref (requestHandler), client_sock);
             thread.detach();
         }
     }

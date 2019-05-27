@@ -13,18 +13,19 @@
 #include "LoggingUtility.h"
 #include "CaesarCipher.h"
 
-class ConnectionHandler {
+class RequestHandler {
 private:
     std::unique_ptr<Cipher> cipher;
     //Cipher *cipher{};
 public:
-    explicit ConnectionHandler(const std::string &cipherName);
+  explicit RequestHandler (const std::string& cipherName);
 
-    explicit ConnectionHandler() = default;
+  explicit RequestHandler () = default;
 
     void *Handle(int socket) const;
 
-    ConnectionHandler &operator=(ConnectionHandler &&other) noexcept {
+  RequestHandler& operator= (RequestHandler&& other) noexcept
+  {
         if (this != &other) {
             this->cipher = std::move(other.cipher);
         }
